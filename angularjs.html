@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>Bootstrap Example</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+
+  <style type="text/css">
+  	.container{
+
+  		margin: auto;
+  	}
+
+  	.panel-body{
+
+  		text-align: center;
+  	}
+
+  	.fullHeight{
+
+  		height: 100%;
+  	}
+  </style>
+  
+</head>
+<body>
+
+
+<div class="container" >
+	<div class="panel panel-default" ng-app="myApp" ng-controller="myCtrl">
+	  <div class="panel-body">
+	  	<div class = "input-group">
+	         <input type="text" class="form-control" ng-model="firstName" placeholder="Type any name and click add to see gauge demo...">
+	         <span class="input-group-btn">
+	         	<button type="button" class="btn btn-default" ng-click="AddGauge(firstName)">Add</button>
+	         </span>
+	     </div>      	  	
+	  	<hr/>
+		  <div class="row">
+	  		<div class="col-lg-4 col-md-4 col-sm-6 ng-scope fullHeight" ng-repeat="g in Gauges">
+	  			<div class="panel panel-default">
+	  				<div class="panel-heading">{{g.name}}</div>
+	  				<div class="panel-body">
+	  					<h3><span class="label label-default">{{g.value}}</span></h3>
+	  					<canvas dir-gauges></canvas>	  					
+	  				</div>
+	  				<div class="panel-footer">
+	  					<table class="table table-bordered" >
+	  						<tbody ng-repeat="p in g.PreviousReadings.slice().reverse() | limitTo: 10  track by $index ">
+	  							<tr>
+		  							<td>{{p}}</td>
+		  						</tr>
+	  						</tbody>	  						
+	  					</table>	  					
+	  				</div>
+	  			</div>
+	  		</div>		  		
+		  </div>
+	  </div>
+	</div>
+</div>
+
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.0/jquery.min.js"></script>
+  	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+	<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.6.4/angular.min.js"></script>
+	<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.2.7/angular-resource.min.js"></script>
+	<script src="http://bernii.github.io/gauge.js/dist/gauge.min.js"></script>
+	<script type="text/javascript">
+		
+
+			var app = angular.module("myApp", []);	
+
+			app.controller('myCtrl', function($scope) {			    
+			    $scope.Gauges = [];		
+			    $scope.RandomColor = function randomColor()	{
+				     color='rgb('+Math.round(Math.random()*255)+','+Math.round(Math.random()*255)+','+Math.round(Math.random()*255)+')';
+
+				     return color;
+				}
+			    $scope.AddGauge = function(text){			    	
+			    	 var tArray = $.map( $scope.Gauges,function(item){
+			    	 	return item.name;
+			    	 });
+
+			    	 if(tArray.indexOf(text) == -1)
+				    	 $scope.Gauges.push({name:text,value:0, PreviousReadings:[]});
+			    }
+			});
+
+			app.directive("dirGauges", function () {
+				return function (scope, element, attrs) {
+					if (scope.day == attrs["highlight"]) {
+						
+						$(element[0]).attr("id",scope.g.name);
+						var opts = {
+						  angle: 0.15, // The span of the gauge arc
+						  lineWidth: 0.44, // The line thickness
+						  radiusScale: 1, // Relative radius
+						  pointer: {
+						    length: 0.6, // // Relative to gauge radius
+						    strokeWidth: 0.035, // The thickness
+						    color: '#000000' // Fill color
+						  },
+						  limitMax: false,     // If false, max value increases automatically if value > maxValue
+						  limitMin: false,     // If true, the min value of the gauge will be fixed
+						  colorStart: '#6FADCF',   // Colors
+						  colorStop: scope.$parent.RandomColor(),    // just experiment with them
+						  strokeColor: '#E0E0E0',  // to see which ones work best for you
+						  generateGradient: true,
+						  highDpiSupport: true     // High resolution support
+						};
+						
+						
+						var gauge = new Gauge(element[0]).setOptions(opts); // create sexy gauge!
+						gauge.maxValue = 300; // set max gauge value
+						gauge.setMinValue(0);  // Prefer setter over gauge.minValue = 0
+						gauge.animationSpeed = 32; // set animation speed (32 is default value)
+						gauge.set(250);
+						scope.g.value = 250;
+						scope.g.PreviousReadings.push(250);
+
+						setInterval(function(){
+
+							var _num = Math.floor((Math.random() * 300) + 1);
+							scope.$apply(function(){
+								scope.g.value = _num;
+								scope.g.PreviousReadings.push(_num)
+							});
+
+							
+							
+							gauge.set(_num);
+
+						},3000)
+					}
+				}
+			});
+			
+	
+	</script>
+</body>
+</html>
